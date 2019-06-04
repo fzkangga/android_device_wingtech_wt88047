@@ -48,7 +48,7 @@
 GyroSensor::GyroSensor()
 	: SensorBase(NULL, GYRO_INPUT_DEV_NAME),
 	  mEnabled(0),
-	  mInputReader(6),
+	  mInputReader(4),
 	  mHasPendingEvent(false),
 	  mEnabledTime(0)
 {
@@ -60,7 +60,11 @@ GyroSensor::GyroSensor()
 	if (data_fd) {
 		strlcpy(input_sysfs_path, "/sys/class/input/", sizeof(input_sysfs_path));
 		strlcat(input_sysfs_path, input_name, sizeof(input_sysfs_path));
+#ifdef TARGET_8610
+		strlcat(input_sysfs_path, "/device/", sizeof(input_sysfs_path));
+#else
 		strlcat(input_sysfs_path, "/device/device/", sizeof(input_sysfs_path));
+#endif
 		input_sysfs_path_len = strlen(input_sysfs_path);
 		enable(0, 1);
 	}
@@ -69,7 +73,7 @@ GyroSensor::GyroSensor()
 GyroSensor::GyroSensor(struct SensorContext *context)
 	: SensorBase(NULL, NULL),
 	  mEnabled(0),
-	  mInputReader(6),
+	  mInputReader(4),
 	  mHasPendingEvent(false),
 	  mEnabledTime(0)
 {
@@ -88,7 +92,7 @@ GyroSensor::GyroSensor(struct SensorContext *context)
 GyroSensor::GyroSensor(char *name)
 	: SensorBase(NULL, GYRO_INPUT_DEV_NAME),
 	  mEnabled(0),
-	  mInputReader(6),
+	  mInputReader(4),
 	  mHasPendingEvent(false),
 	  mEnabledTime(0)
 {
@@ -243,15 +247,15 @@ again:
 				break;
 				case SYN_REPORT:
 					{
-						if (mEnabled && mUseAbsTimeStamp) {
+						if(mUseAbsTimeStamp != true) {
+							mPendingEvent.timestamp = timevalToNano(event->time);
+						}
+						if (mEnabled) {
 							if(mPendingEvent.timestamp >= mEnabledTime) {
 								*data++ = mPendingEvent;
 								numEventReceived++;
 							}
 							count--;
-							mUseAbsTimeStamp = false;
-						} else {
-							ALOGE_IF(!mUseAbsTimeStamp, "GyroSensor:timestamp not received");
 						}
 					}
 				break;

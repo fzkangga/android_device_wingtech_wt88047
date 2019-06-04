@@ -18,8 +18,8 @@
 
 set -e
 
-DEVICE=wt88047
-VENDOR=wingtech
+DEVICE=smartfren
+VENDOR=rendang
 
 INITIAL_COPYRIGHT_YEAR=2015
 
